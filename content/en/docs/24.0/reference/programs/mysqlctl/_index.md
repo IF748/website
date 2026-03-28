@@ -83,6 +83,7 @@ This helps ensure that `mysqld` is automatically restarted after failures.
       --pprof-http                                                  enable pprof http endpoints
       --purge-logs-interval duration                                how often try to remove old logs (default 1h0m0s)
       --replication-connect-retry duration                          how long to wait in between replica reconnect attempts. Only precise to the second. (default 10s)
+      --replication-retry-count int                                 how many times a replica attempts to reconnect to the primary before giving up. Maps to MySQL's SOURCE_RETRY_COUNT. (default 0, uses MySQL server default)
       --security-policy string                                      the name of a registered security policy to use for controlling access to URLs - empty means allow all for anyone (built-in policies: deny-all, read-only)
       --service-map strings                                         comma separated list of services to enable (or disable if prefixed with '-') Example: grpc-queryservice
       --socket-file string                                          Local unix socket file to listen on

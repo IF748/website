@@ -28,7 +28,8 @@ See "Unmanaged Tablet" for the full guide.
 Even if a MySQL is external, you can still make vttablet perform some management functions. They are as follows:
 
 * `--unmanaged`: This flag indicates that this tablet is running in unmanaged mode. In this mode, any reparent or replica commands are not allowed. These are InitShardPrimary, PlannedReparentShard, EmergencyReparentShard, and ReparentTablet. You should use the TabletExternallyReparented command to inform vitess of the current primary.
-* `--replication-connect-retry`: This value is give to mysql when it connects a replica to the primary as the retry duration parameter.
+* `--replication-connect-retry`: This value is given to MySQL when it connects a replica to the primary as the retry duration parameter.
+* `--replication-retry-count`: This value is given to MySQL when it connects a replica to the primary as the retry count parameter. It sets how many times a replica attempts to reconnect to the primary before giving up. When set to 0 (the default), MySQL's server default is used.
 * `--heartbeat-enable` and `--heartbeat-interval duration`: cause vttablet to write heartbeats to the sidecar database. This information is also used by the replication reporter to assess replica lag.
 
 
@@ -325,6 +326,7 @@ vttablet \
       --relay-log-max-size int                                           Maximum buffer size (in bytes) for vreplication target buffering. If single rows are larger than this, a single row is buffered at a time. (default 250000)
       --remote-operation-timeout duration                                time to wait for a remote operation (default 15s)
       --replication-connect-retry duration                               how long to wait in between replica reconnect attempts. Only precise to the second. (default 10s)
+      --replication-retry-count int                                      how many times a replica attempts to reconnect to the primary before giving up. Maps to MySQL's SOURCE_RETRY_COUNT. (default 0, uses MySQL server default)
       --restore-concurrency int                                          (init restore parameter) how many concurrent files to restore at once (default 4)
       --restore-from-backup                                              (init restore parameter) will check BackupStorage for a recent backup at startup and start there
       --restore-from-backup-allowed-engines strings                      (init restore parameter) if set, only backups taken with the specified engines are eligible to be restored
