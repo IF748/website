@@ -68,6 +68,28 @@ Vitess allows you to create an unsharded table and deploy it into all shards of 
 
 Typically, such a table has a canonical source in an unsharded keyspace, and the copies in the sharded keyspace are kept up-to-date through VReplication.
 
+## Pinned tables
+
+A pinned table routes all rows to a single shard based on a fixed keyspace ID specified in the VSchema. Unlike regular sharded tables, pinned tables do not require a Primary Vindex to determine row placement.
+
+Pinned tables are useful for small lookup or configuration tables that you want to keep in a sharded keyspace without creating a separate unsharded keyspace. All DML operations (SELECT, INSERT, UPDATE, DELETE) work without requiring vindex columns.
+
+To create a pinned table, specify the `pinned` field in the table's VSchema definition with a hex-encoded keyspace ID:
+
+``` json
+{
+  "sharded": true,
+  "tables": {
+    "config_settings": {
+      "pinned": "00"
+    }
+  }
+}
+```
+
+The `pinned` value is the hex representation of the keyspace ID that determines which shard stores all rows of this table. For example, `"00"` routes to the shard covering keyspace IDs starting with `0x00`. VTGate routes all queries for the table to the shard whose key range contains that keyspace ID.
+
+Unlike reference tables, which replicate data to all shards, pinned tables exist in only one shard. Use pinned tables when you need a single source of truth for small datasets. Use reference tables when you need the data available locally on every shard for join performance.
 
 ## Per-Keyspace VSchema
 
