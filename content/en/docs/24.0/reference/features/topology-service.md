@@ -306,6 +306,18 @@ regular files:
 Both locks and primary election are implemented using ephemeral, sequential files
 which are stored in their respective directory.
 
+#### Connection metrics
+
+The `zk2` implementation exposes metrics for monitoring ZooKeeper connectivity. These metrics are available at `/debug/vars` and help diagnose connection issues between Vitess components and the ZooKeeper cluster.
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `ZkConnAcquisition` | GaugeDuration | Time spent waiting to acquire the ZooKeeper connection semaphore. |
+| `ZkConnAcquisitionRetry` | Counter | Number of connection retry attempts. |
+| `ZkConnState` | CountersWithSingleLabel | ZooKeeper connection state transitions, labeled by state. |
+
+These metrics are useful for debugging ZooKeeper connectivity issues, such as connection delays or frequent reconnection attempts.
+
 ### etcd `etcd2` implementation (new version of `etcd`)
 
 This topology service plugin is meant to use etcd clusters as storage backend
