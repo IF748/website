@@ -312,7 +312,7 @@ The `zk2` implementation exposes metrics for monitoring ZooKeeper connectivity. 
 
 | Metric | Type | Description |
 |--------|------|-------------|
-| `ZkConnAcquisition` | GaugeDuration | Time spent waiting to acquire the ZooKeeper connection semaphore. |
+| `ZkLockAcquisition` | GaugeDuration | Time spent waiting to acquire a ZooKeeper connection lock. |
 | `ZkConnAcquisitionRetry` | Counter | Number of connection retry attempts. |
 | `ZkConnState` | CountersWithSingleLabel | ZooKeeper connection state transitions, labeled by state. |
 
