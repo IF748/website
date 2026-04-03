@@ -6,6 +6,20 @@ weight: 85
 
 VReplication exports several metrics using the expvars interface. These are available at the `/debug/vars` endpoint of vttablet's http status pages. [More details can be found here](../../features/monitoring/#3-push-based-metrics-system).
 
+## Prometheus Labels
+
+With the Prometheus metrics backend, per-stream VReplication metrics include a `workflow_type` label that identifies the operation type. You can use this label to filter and aggregate metrics by operation type in dashboards and alerts.
+
+Possible `workflow_type` values include:
+
+| Value | Description |
+|-------|-------------|
+| `MoveTables` | Data migration between keyspaces |
+| `Reshard` | Resharding operation |
+| `OnlineDDL` | Online schema change |
+| `Materialize` | Materialized view workflow |
+| `CreateLookupIndex` | Lookup vindex creation |
+
 ## Target Tablet Metrics
 
 #### VReplicationCopyLoopCount, VReplicationCopyLoopCountTotal
