@@ -139,6 +139,50 @@ Before scheduling a backup for a shard, the operator verifies that the shard is 
 
 If a shard doesn't meet these requirements (for example, during initial cluster bootstrap or while resharding), the operator skips scheduling backups for that shard and retries on the next reconcile. This prevents backup failures for shards that are still being set up.
 
+### Custom labels
+
+Use the `extraLabels` field to add custom Kubernetes labels to backup-related resources. The operator applies these labels to the pods and jobs it creates, which helps with cost allocation, resource organization, and integration with monitoring or policy enforcement tools.
+
+The `extraLabels` field is available on these CRDs:
+
+- `VitessBackupSchedule.spec.extraLabels`: Labels applied to scheduled backup job pods
+- `VitessBackupStorage.spec.extraLabels`: Labels applied to the backup storage subcontroller pod
+- `VitessCluster.spec.backup.extraLabels`: Labels applied to vtbackup-init pods
+
+#### Example: Adding labels to scheduled backup jobs
+
+```yaml
+apiVersion: planetscale.com/v2
+kind: VitessBackupSchedule
+metadata:
+  name: daily-backup
+spec:
+  cluster: example
+  frequency: "24h"
+  extraLabels:
+    team: platform
+    cost-center: infrastructure
+  strategies:
+    - name: all-shards
+      scope: Cluster
+```
+
+#### Example: Adding labels to backup storage
+
+```yaml
+apiVersion: planetscale.com/v2
+kind: VitessBackupStorage
+metadata:
+  name: example-backup-storage
+  namespace: example
+spec:
+  extraLabels:
+    environment: production
+    managed-by: vitess-operator
+  location:
+    # ... backup location configuration
+```
+
 ### Adding the schedule
 
 {{< warning >}}
