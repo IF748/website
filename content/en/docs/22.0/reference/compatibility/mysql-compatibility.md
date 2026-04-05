@@ -112,12 +112,42 @@ Vitess allows selecting a keyspace (and shard/tablet-type) using the MySQL `USE`
 USE `mykeyspace:-80@rdonly`
 ```
 
+The format is `keyspace:shard_range@tablet_type`. You can also target all shards using the full keyrange `-`:
+
+```sql
+USE `mykeyspace:-`
+```
+
 Or refer to another keyspace’s table via standard dot notation:
 
 ```sql
-SELECT * 
+SELECT *
 FROM other_keyspace.table;
 ```
+
+#### LIMIT Behavior with Shard Targeting
+
+When a `USE` statement specifies a keyrange to target shards explicitly, Vitess bypasses normal query planning and sends the query verbatim to each matching shard. This affects how `LIMIT` clauses behave in DML statements (`UPDATE`, `DELETE`):
+
+| Routing Method | LIMIT Behavior | Example Result |
+|----------------|----------------|----------------|
+| Normal routing (no shard target) | VTGate applies LIMIT globally | `LIMIT 100` affects 100 rows total |
+| Shard targeting (`USE keyspace:-`) | Each shard applies LIMIT independently | `LIMIT 100` with N shards affects up to N×100 rows |
+
+**Example:**
+
+```sql
+-- Normal routing: VTGate selects 100 PKs first, then updates those specific rows
+-- Result: exactly 100 rows updated across all shards
+UPDATE mytable SET is_active=0 WHERE is_active=1 LIMIT 100;
+
+-- Shard targeting: query sent verbatim to each shard
+-- Result: up to N*100 rows updated (100 per shard)
+USE `mykeyspace:-`;
+UPDATE mytable SET is_active=0 WHERE is_active=1 LIMIT 100;
+```
+
+This behavior is intentional. Specifying a shard target bypasses VTGate’s routing, opting out of the normal SQL semantics VTGate would otherwise enforce. This can be useful for bulk operations that process rows in batches across all shards simultaneously.
 
 ### Common Table Expressions
  - Non-recursive CTEs are supported.
