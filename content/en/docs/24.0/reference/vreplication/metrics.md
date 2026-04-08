@@ -19,6 +19,7 @@ Possible `workflow_type` values include:
 | `OnlineDDL` | Online schema change |
 | `Materialize` | Materialized view workflow |
 | `CreateLookupIndex` | Lookup vindex creation |
+| `Migrate` | External database migration |
 
 ## Target Tablet Metrics
 
