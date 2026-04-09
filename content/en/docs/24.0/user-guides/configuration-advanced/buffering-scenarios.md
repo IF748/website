@@ -273,7 +273,7 @@ Terminal 1:
     --topo-global-root /vitess/global --log-dir ~/github/vitess/examples/local/vtdataroot/tmp \
     --log-queries-to-file ~/github/vitess/examples/local/vtdataroot/tmp/vtgate_querylog.txt \
     --port 15001 -grpc_port 15991 --mysql-server-port 15306 --mysql-server-socket-path /tmp/mysql.sock \
-    --cell zone1 -cells_to_watch zone1 --tablet-types-to-wait PRIMARY,REPLICA \
+    --cell zone1 --cells-to-watch zone1 --tablet-types-to-wait PRIMARY,REPLICA \
     --service-map grpc-vtgateservice -pid_file ~/github/vitess/examples/local/vtdataroot/tmp/vtgate.pid \
     --mysql-auth-server-impl none --enable-buffer=1
 ```

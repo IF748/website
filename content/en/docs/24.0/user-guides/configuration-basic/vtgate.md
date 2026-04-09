@@ -34,15 +34,15 @@ VTGate uses the global topo to get the topo addresses of the cells it has to wat
 
 VTGate does not require `<backup_flags>`.
 
-For sending primary queries across cells, you must specify an additional `cells_to_watch` flag. This will make the vtgates watch those additional cells, and will allow them to keep track of the primaries in those cells.
+For sending primary queries across cells, you must specify an additional `cells-to-watch` flag. This will make the vtgates watch those additional cells, and will allow them to keep track of the primaries in those cells.
 
-The `cells_to_watch` flag is a required parameter and must at least include the current cell. This is an [issue](https://github.com/vitessio/vitess/issues/6126) we will fix soon.
+The `cells-to-watch` flag is a required parameter and must at least include the current cell. This is an [issue](https://github.com/vitessio/vitess/issues/6126) we will fix soon.
 
 Going cross-cell for non-primary requests is an advanced use case that requires setting up cell aliases. This topic will not be covered in this user guide.
 
 For those who wish to use the MySQL protocol, you must specify a `mysql_server_port` and a `mysql_auth_server_impl` for configuring authentication. Predefined auth servers are `clientcert`, `static`, `ldap` and `none`. The most commonly used authentication is `static` that  allows you to specify the credentials through a `mysql_auth_server_static_file` parameter.
 
-The `vschema_ddl_authorized_users` specifies which users can alter the vschema by issuing “[vschema ddls](../../vschema-guide/vschema_ddl)” directly to vtgate. VSchema DDL is an experimental feature.
+The `vschema-ddl-authorized-users` flag specifies which users can alter the vschema by issuing “[vschema ddls](../../vschema-guide/vschema_ddl)” directly to vtgate. VSchema DDL is an experimental feature.
 
 Here are the contents of an example file that shows the ability to specify MySQL caching sha2, native passwords as well as plain text:
 

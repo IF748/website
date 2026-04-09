@@ -567,7 +567,7 @@ ${OTHER_VTGATE_FLAGS}
 ```
 
 6. You can repeat steps 3 through 5 above to create each cell as needed. If you
-have a vtgate instance that is watching a new and old cell with `-cells_to_watch`,
+have a vtgate instance that is watching a new and old cell with `--cells-to-watch`,
 you may have to rebuild the topology for the Keyspace and VSchema. This will
 propagate information from the global topology service back to the local topology
 services
