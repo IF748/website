@@ -46,6 +46,27 @@ The query throttler reads its configuration from the topology server's `SrvKeysp
 
 When vttablet starts, it loads the initial configuration from `SrvKeyspace.QueryThrottlerConfig` and then watches for subsequent changes. Updates are applied automatically without requiring tablet restarts.
 
+### Applying configuration
+
+Use `vtctldclient UpdateQueryThrottlerConfig` to apply query throttler configuration to a keyspace:
+
+```shell
+vtctldclient UpdateQueryThrottlerConfig --config '{"enabled":true,"strategy":"TABLET_THROTTLER"}' my_keyspace
+```
+
+The command accepts configuration as a JSON string or from a file:
+
+- `--config` or `-c`: Configuration as a JSON string
+- `--config-file` or `-f`: Path to a JSON configuration file
+
+For complex configurations, use a file:
+
+```shell
+vtctldclient UpdateQueryThrottlerConfig --config-file /path/to/config.json my_keyspace
+```
+
+The configuration is stored in the keyspace record in the topology server and propagated to `SrvKeyspace` in all cells. All tablets in the keyspace receive the update through their topology watch and apply it without requiring a restart.
+
 ### Basic configuration
 
 The throttler uses JSON configuration:
@@ -262,6 +283,18 @@ The query throttler adds minimal overhead:
 - **Cache hit rate**: Greater than 95% in normal operations, reducing the need for metric collection
 - **Under load**: Graduated throttling (10-50% throttle rates) prevents complete overload while allowing some queries through
 - **Priority 0 queries**: Zero throttling overhead, allowing critical queries to bypass all checks
+
+### Cache refresh interval
+
+The `TabletThrottler` strategy caches throttle check results to avoid per-query metric lookups. A background goroutine refreshes the cache periodically by calling the tablet throttler.
+
+The `--tablet-throttler-cache-update-interval` vttablet flag controls how often the cache refreshes. The default is `10s`.
+
+```shell
+vttablet --tablet-throttler-cache-update-interval=5s ...
+```
+
+Lower values make throttling more responsive but increase overhead. Higher values reduce overhead but delay reaction to metric changes. The default of 10 seconds balances responsiveness with efficiency for most workloads.
 
 ## Best practices
 
