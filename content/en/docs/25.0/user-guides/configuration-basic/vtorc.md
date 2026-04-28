@@ -13,6 +13,7 @@ It detects any configuration problems in the cluster and fixes them. Here is the
 |----------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
 | `ClusterHasNoPrimary`                                                                                                                                    | VTOrc detects when a shard doesn't have any primary tablet elected                                                                                                                                               | VTOrc runs PlannedReparentShard to elect a new primary         |
 | `DeadPrimary`                                                                                                                                            | VTOrc detects when the primary tablet is dead                                                                                                                                                                    | VTOrc runs EmergencyReparentShard to elect a different primary |
+| `PrimaryTabletUnreachableByQuorum`                                                                                                                       | VTOrc detects when the primary vttablet process is unreachable by a quorum of replica tablets (requires [gossip-based failure detection](#gossip-based-failure-detection))                                      | VTOrc runs EmergencyReparentShard to elect a different primary |
 | `IncapacitatedPrimary`                                                                                                                                   | VTOrc detects when the primary tablet is consistently failing health checks but is still network-reachable                                                                                                       | VTOrc runs PlannedReparentShard, falling back to EmergencyReparentShard if that fails |
 | `PrimaryIsReadOnly`, `PrimarySemiSyncMustBeSet`, `PrimarySemiSyncMustNotBeSet`                                                                           | VTOrc detects when the primary tablet has configuration issues like being read-only, semi-sync being set or not being set                                                                                        | VTOrc fixes the configurations on the primary.                 |
 | `NotConnectedToPrimary`, `ConnectedToWrongPrimary`, `ReplicationStopped`, `ReplicaIsWritable`, `ReplicaSemiSyncMustBeSet`, `ReplicaSemiSyncMustNotBeSet` | VTOrc detects when a replica has configuration issues like not being connected to the primary, connected to the wrong primary, replication stopped, replica being writable, semi-sync being set or not being set | VTOrc fixes the configurations on the replica.                 |
@@ -92,6 +93,62 @@ When neither flag is set, VTOrc monitors all tablets in the topology.
 
 All the failovers that VTOrc performs will be honoring the [durability policies](../../configuration-basic/durability_policy). Please be careful in setting the
 desired durability policies for your keyspace because this will affect what situations VTOrc can recover from and what situations will require manual intervention.
+
+### Gossip-Based Failure Detection
+
+Traditional VTOrc failure detection relies on MySQL replication monitoring. If the MySQL process fails, VTOrc detects the replication break and triggers failover. However, when the vttablet process crashes while MySQL remains healthy, the replication connection stays intact and VTOrc does not detect the failure. This leaves the shard in a broken state where the primary vttablet is unreachable but no automatic recovery occurs.
+
+Gossip-based failure detection addresses this limitation by enabling tablets to monitor each other directly. When a quorum of replica tablets agrees that the primary vttablet is unreachable, VTOrc triggers an Emergency Reparent Shard operation.
+
+#### Enabling Gossip
+
+Gossip is configured per-keyspace using the `vtctldclient UpdateGossipConfig` command:
+
+```sh
+vtctldclient UpdateGossipConfig --enable --ping-interval=1s --max-update-age=5s --phi-threshold=4 <keyspace>
+```
+
+Three components must be configured for gossip to work:
+
+1. **vttablet**: Add `grpc-gossip` to the `--service-map` flag:
+   ```sh
+   vttablet --service-map 'grpc-queryservice,grpc-tabletmanager,grpc-updatestream,grpc-gossip' ...
+   ```
+
+2. **VTOrc**: Set the `--gossip-listen-addr` flag:
+   ```sh
+   vtorc --gossip-listen-addr ':15100' ...
+   ```
+
+3. **Keyspace**: Enable gossip using `UpdateGossipConfig` as shown above.
+
+Configuration changes propagate through the topology service without requiring process restarts.
+
+#### Configuration Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--enable` | N/A | Enables gossip for the keyspace. Use `--disable` to turn it off. |
+| `--ping-interval` | 1s | How often tablets exchange gossip heartbeats. |
+| `--max-update-age` | 5s | Maximum staleness before marking a peer as down. |
+| `--phi-threshold` | 4 | Phi-accrual suspicion threshold. Higher values reduce false positives but increase detection latency. |
+
+#### Quorum Requirements
+
+For VTOrc to trigger `PrimaryTabletUnreachableByQuorum`:
+
+- The primary must be marked as `Down` by the gossip protocol (not just `Suspect`)
+- A strict majority of non-primary replicas must be `Alive`
+- At least 2 alive observers are required
+- For small shards (2 or fewer replicas), VTOrc's own health check must also corroborate the failure
+
+#### Multi-Keyspace Considerations
+
+When multiple keyspaces have gossip enabled, they must use consistent configuration values. If conflicting settings are detected, VTOrc refuses to start gossip and logs an error. Resolve this by ensuring all enabled keyspaces use the same `ping-interval`, `max-update-age`, and `phi-threshold` values.
+
+#### Debug Endpoint
+
+Both vttablet and VTOrc expose a `/debug/gossip` HTTP endpoint that returns the current gossip state as JSON. This is useful for debugging connectivity issues or verifying that gossip is functioning correctly.
 
 ### Running VTOrc using the Vitess Operator
 

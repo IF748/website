@@ -125,6 +125,7 @@ vtctldclient [flags]
 * [vtctldclient TabletExternallyReparented](./vtctldclient_tabletexternallyreparented/)	 - Updates the topology record for the tablet's shard to acknowledge that an external tool made this tablet the primary.
 * [vtctldclient UpdateCellInfo](./vtctldclient_updatecellinfo/)	 - Updates the content of a CellInfo with the provided parameters, creating the CellInfo if it does not exist.
 * [vtctldclient UpdateCellsAlias](./vtctldclient_updatecellsalias/)	 - Updates the content of a CellsAlias with the provided parameters, creating the CellsAlias if it does not exist.
+* [vtctldclient UpdateGossipConfig](./vtctldclient_updategossipconfig/)	 - Update the gossip protocol configuration for all tablets in the given keyspace (across all cells)
 * [vtctldclient UpdateThrottlerConfig](./vtctldclient_updatethrottlerconfig/)	 - Update the tablet throttler configuration for all tablets in the given keyspace (across all cells)
 * [vtctldclient VDiff](./vtctldclient_vdiff/)	 - Perform commands related to diffing tables involved in a VReplication workflow between the source and target.
 * [vtctldclient Validate](./vtctldclient_validate/)	 - Validates that all nodes reachable from the global replication graph, as well as all tablets in discoverable cells, are consistent.
