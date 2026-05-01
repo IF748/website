@@ -21,6 +21,24 @@ More information on this feature can be found in [this blog post](https://vitess
 Schema tracking is enabled in VTGate with the flag `--schema-change-signal`, defaults to `true`. When enabled, VTGate listens for schema changes from VTTablet.
 A change triggers a `GetSchema` rpc call to VTTablet to retrieve the stored schema.
 
+### Limiting tracked keyspaces
+
+By default, VTGate's schema tracker follows all keyspaces. In deployments with hundreds of keyspaces, this can cause VTGate startup to take several minutes as the tracker iterates through each keyspace to load its schema. This delay may exceed Kubernetes liveness probe thresholds and trigger container restarts.
+
+To reduce startup time, use the `--schema-change-keyspaces` flag to specify which keyspaces to track:
+
+```text
+vtgate --schema-change-keyspaces "keyspace1,keyspace2,keyspace3" ...
+```
+
+When this flag is set, only the listed keyspaces are tracked. Keyspaces not in the list are ignored during startup and ongoing schema change notifications.
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--schema-change-keyspaces` | string | empty | Comma-separated allowlist of keyspaces to track. If empty, all keyspaces are tracked. |
+
+If the flag is set but contains only whitespace or commas (no valid keyspace names), VTGate rejects the configuration and exits at startup.
+
 ## VTTablet
 
 Schema tracking is enabled in VTTablet with the flag `--queryserver-config-schema-change-signal`, defaults to `true`. When enabled, VTTablet sends schema changes to VTGate when a DDL query executes. Additionally, VTTablet regularly checks for schema changes at a specified interval, which can be adjusted using the `--queryserver-config-schema-reload-time` flag. The default interval is set to 30 minutes.
